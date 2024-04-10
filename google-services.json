@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "221327722667",
+    "project_id": "mobile-app-db368",
+    "storage_bucket": "mobile-app-db368.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:221327722667:android:292e36347dfb216912cfee",
+        "android_client_info": {
+          "package_name": "com.dbverzosa.iSafeButuanApp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCtNs1ID-UNlqdYzhn-AjBmzapPWkXSVe8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:221327722667:android:554d466b4451032412cfee",
+        "android_client_info": {
+          "package_name": "com.dbverzosa.tgbapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCtNs1ID-UNlqdYzhn-AjBmzapPWkXSVe8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

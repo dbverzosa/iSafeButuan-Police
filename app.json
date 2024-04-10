@@ -2,6 +2,23 @@
   "expo": {
     "name": "iSafeButuan-App",
     "slug": "iSafeButuan-App",
+    "plugins": [
+      [
+        "expo-location",
+        {
+          "isAndroidForegroundServiceEnabled": {
+            "message": "Allow $(PRODUCT_NAME) to access your location even when you are not using the app.",
+            "foregroundService": {
+              "notificationTitle": "$(PRODUCT_NAME) Location Service",
+              "notificationBody": "Your location is being tracked to provide you with relevant information."
+            }
+          },
+          "isAndroidBackgroundLocationEnabled": true
+        }
+      ],
+      "@react-native-firebase/app",
+      "@react-native-firebase/auth"
+    ],
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -18,13 +35,20 @@
       "supportsTablet": true
     },
     "android": {
+      "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.dbverzosa.iSafeButuanApp"
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "27c1fce2-c3df-4731-8888-ef7b9d0e8cb7"
+      }
     }
   }
 }
