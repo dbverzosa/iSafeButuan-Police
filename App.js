@@ -494,6 +494,542 @@
 // export default App;
 
 
+////////////////////////////////////////////////ORIGINAL///////////////////////////////////
+
+// import React, { useEffect, useState } from 'react';
+// import { StyleSheet, Text, View, Button, Linking, FlatList, TouchableOpacity, ScrollView } from 'react-native';
+// import * as Location from 'expo-location';
+// import firebase from '@react-native-firebase/app';
+// import '@react-native-firebase/firestore';
+// import Incidents from './Incidents';
+
+// const App = () => {
+//   const [currentLocation, setCurrentLocation] = useState(null);
+//   const [emergencies, setEmergencies] = useState([]);
+//   const [acceptedEmergencies, setAcceptedEmergencies] = useState([]);
+//   const [buttonColors, setButtonColors] = useState({});
+//   const [showIncidents, setShowIncidents] = useState(false); // State to toggle the Incidents component
+//   const [timers, setTimers] = useState({}); // State to manage countdown timers
+
+//   useEffect(() => {
+//     getLocationPermission();
+//   }, []);
+
+//   const getLocationPermission = async () => {
+//     const { status } = await Location.requestForegroundPermissionsAsync();
+//     if (status !== 'granted') {
+//       console.log('Permission to access location was denied');
+//     }
+//   };
+
+//   const getCurrentLocation = async () => {
+//     try {
+//       const location = await Location.getCurrentPositionAsync({});
+//       setCurrentLocation(location);
+//     } catch (error) {
+//       console.error('Error getting current location:', error);
+//     }
+//   };
+
+//   const calculateDistance = (lat1, lon1, lat2, lon2) => {
+//     const R = 6371; // Radius of the Earth in kilometers
+//     const dLat = (lat2 - lat1) * (Math.PI / 180);
+//     const dLon = (lon2 - lon1) * (Math.PI / 180);
+//     const a =
+//       0.5 -
+//       Math.cos(dLat) / 2 +
+//       (Math.cos(lat1 * (Math.PI / 180)) *
+//         Math.cos(lat2 * (Math.PI / 180)) *
+//         (1 - Math.cos(dLon))) /
+//         2;
+//     return R * 2 * Math.asin(Math.sqrt(a));
+//   };
+
+//   const getEmergencies = async () => {
+//     const snapshot = await firebase.firestore().collection('emergencies').get();
+//     const emergencies = [];
+
+//     snapshot.forEach(doc => {
+//       const locationData = doc.data();
+//       const distance = calculateDistance(
+//         currentLocation.coords.latitude,
+//         currentLocation.coords.longitude,
+//         locationData.latitude,
+//         locationData.longitude
+//       );
+//       emergencies.push({ id: doc.id, ...locationData, distance }); // Include doc.id for identifying each emergency
+//     });
+
+//     setEmergencies(emergencies);
+//     setButtonColors(emergencies.reduce((acc, cur) => {
+//       acc[cur.id] = acceptedEmergencies.includes(cur.id) ? 'green' : 'red';
+//       return acc;
+//     }, {}));
+//   };
+
+//   useEffect(() => {
+//     getCurrentLocation();
+//   }, []);
+
+//   useEffect(() => {
+//     if (currentLocation) {
+//       getEmergencies();
+//     }
+//   }, [currentLocation]);
+
+//   const handleAcceptEmergency = async (emergencyId) => {
+//     try {
+//       await firebase.firestore().collection('emergencies').doc(emergencyId).update({
+//         status: 'Accepted'
+//       });
+  
+//       // Update the status in the local state
+//       setEmergencies(prevEmergencies =>
+//         prevEmergencies.map(emergency =>
+//           emergency.id === emergencyId ? { ...emergency, status: 'Accepted' } : emergency
+//         )
+//       );
+  
+//       // Update button color to green
+//       setButtonColors(prevButtonColors => ({
+//         ...prevButtonColors,
+//         [emergencyId]: 'green'
+//       }));
+  
+//       // Start a countdown timer to remove the emergency
+//       const timer = setTimeout(() => {
+//         setEmergencies(prevEmergencies =>
+//           prevEmergencies.filter(emergency => emergency.id !== emergencyId)
+//         );
+//         // Clear the timer
+//         clearTimeout(timers[emergencyId]);
+//       }, 60 * 1000); // 1 minute in milliseconds
+  
+//       // Save the timer to clear it later if needed
+//       setTimers(prevTimers => ({
+//         ...prevTimers,
+//         [emergencyId]: timer
+//       }));
+//     } catch (error) {
+//       console.error('Error accepting emergency:', error);
+//     }
+//   };
+  
+  
+  
+  
+//   // In your useEffect for cleanup, clear the timers
+//   useEffect(() => {
+//     return () => {
+//       Object.values(timers).forEach(timer => clearTimeout(timer));
+//     };
+//   }, []);
+
+//   return (
+//           <View style={styles.container}>
+//             <Text style={styles.heading}>CITIZENS NEED HELP</Text>
+//             <View style={styles.flatListContainer}>
+//             <FlatList
+//         style={styles.flatList}
+//         data={emergencies.filter(emergency => emergency.status !== 'Accepted')}
+//         keyExtractor={(item, index) => index.toString()}
+//         renderItem={({ item }) => (
+//           <View style={styles.itemContainer}>
+//             <Text>Latitude: {item.latitude}, Longitude: {item.longitude}</Text>
+//             <Text>Distance: {item.distance.toFixed(2)} km</Text>
+//             {item.status ? (
+//               <Text style={styles.acceptedText}>Accepted</Text>
+//             ) : (
+//               <Text style={styles.pendingText}>Pending</Text>
+//             )}
+//             {timers[item.id] && (
+//               <Text style={styles.timerText}>
+//                 Timer: {Math.ceil((timers[item.id] - Date.now()) / 1000)} seconds
+//               </Text>
+//             )}
+//             <TouchableOpacity
+//               style={[styles.acceptButton, { backgroundColor: buttonColors[item.id] }]}
+//               onPress={() => handleAcceptEmergency(item.id)}
+//             >
+//               <Text style={styles.buttonText}>Accept</Text>
+//             </TouchableOpacity>
+//             <View style={styles.buttonContainer}>
+//               <Button
+//                 title="View Fastest Route"
+//                 onPress={() =>
+//                   Linking.openURL(
+//                     `https://www.google.com/maps/dir/?api=1&origin=${currentLocation.coords.latitude},${currentLocation.coords.longitude}&destination=${item.latitude},${item.longitude}`
+//                   )
+//                 }
+//               />
+//             </View>
+//           </View>
+//         )}
+//       />
+
+//       </View>
+//       {showIncidents && <Incidents onClose={() => setShowIncidents(false)} />}
+//         <View style={styles.buttonContainer}>
+//           <Button
+//             title="Show Incidents"
+//             onPress={() => setShowIncidents(true)}
+//           />
+//         </View>
+//     </View>
+//   );
+// };
+
+// const styles = StyleSheet.create({
+//   container: {
+//     flex: 1,
+//     backgroundColor: '#fff',
+//     alignItems: 'center',
+//     justifyContent: 'center',
+//   },
+//   heading: {
+//     fontSize: 24,
+//     marginTop: 50,
+//     marginBottom: 20,
+//     fontWeight: 'bold',
+//     color: '#841584',
+//   },
+//   flatListContainer: {
+//     flex: 1, // Allow the FlatList container to expand to fill the available space
+//     width: '100%', // Ensure the container takes up the full width
+//   },
+//   itemContainer: {
+//     borderWidth: 2,
+//     borderColor: '#ccc',
+//     borderRadius: 5,
+//     padding: 10,
+//     marginVertical: 10,
+//     width: '90%',
+//     marginBottom: 10,
+//     alignSelf: 'center', // Center the item horizontally
+//   },
+//   flatList: {
+//     flexGrow: 1, // Allow the FlatList to expand to fill the available space
+//   },
+//   acceptButton: {
+//     padding: 10,
+//     borderRadius: 5,
+//     marginTop: 10,
+//     alignItems: 'center',
+//   },
+//   acceptedText: {
+//     backgroundColor: 'lightgreen',
+//     padding: 10,
+//     borderRadius: 5,
+//     marginTop: 10,
+//   },
+//   pendingText: {
+//     backgroundColor: 'yellow',
+//     padding: 10,
+//     borderRadius: 5,
+//     marginTop: 10,
+//   },
+//   buttonText: {
+//     color: 'white',
+//     fontWeight: 'bold',
+//   },
+//   buttonContainer: {
+//     marginTop: 10,
+//     marginBottom: 10,
+//   },
+// });
+
+// export default App;
+
+/////////////////////////////////////////////////////////////////ORIGINAL//////////////////////////////
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ///////////////////ORIGINAL----------------------
+
+
+// import React, { useEffect, useState } from 'react';
+// import { StyleSheet, Text, View, Button, Linking, FlatList, TouchableOpacity, ScrollView } from 'react-native';
+// import * as Location from 'expo-location';
+// import firebase from '@react-native-firebase/app';
+// import '@react-native-firebase/firestore';
+// import Incidents from './Incidents';
+
+// const App = () => {
+//   const [currentLocation, setCurrentLocation] = useState(null);
+//   const [emergencies, setEmergencies] = useState([]);
+//   const [acceptedEmergencies, setAcceptedEmergencies] = useState([]);
+//   const [buttonColors, setButtonColors] = useState({});
+//   const [showIncidents, setShowIncidents] = useState(false); // State to toggle the Incidents component
+//   const [timers, setTimers] = useState({}); // State to manage countdown timers
+
+//   useEffect(() => {
+//     getLocationPermission();
+//   }, []);
+
+//   const getLocationPermission = async () => {
+//     const { status } = await Location.requestForegroundPermissionsAsync();
+//     if (status !== 'granted') {
+//       console.log('Permission to access location was denied');
+//     }
+//   };
+
+//   const getCurrentLocation = async () => {
+//     try {
+//       const location = await Location.getCurrentPositionAsync({});
+//       setCurrentLocation(location);
+//     } catch (error) {
+//       console.error('Error getting current location:', error);
+//     }
+//   };
+
+//   const calculateDistance = (lat1, lon1, lat2, lon2) => {
+//     const R = 6371; // Radius of the Earth in kilometers
+//     const dLat = (lat2 - lat1) * (Math.PI / 180);
+//     const dLon = (lon2 - lon1) * (Math.PI / 180);
+//     const a =
+//       0.5 -
+//       Math.cos(dLat) / 2 +
+//       (Math.cos(lat1 * (Math.PI / 180)) *
+//         Math.cos(lat2 * (Math.PI / 180)) *
+//         (1 - Math.cos(dLon))) /
+//         2;
+//     return R * 2 * Math.asin(Math.sqrt(a));
+//   };
+
+//   const getEmergencies = async () => {
+//     const snapshot = await firebase.firestore().collection('emergencies').get();
+//     const emergencies = [];
+
+//     snapshot.forEach(doc => {
+//       const locationData = doc.data();
+//       const distance = calculateDistance(
+//         currentLocation.coords.latitude,
+//         currentLocation.coords.longitude,
+//         locationData.latitude,
+//         locationData.longitude
+//       );
+//       emergencies.push({ id: doc.id, ...locationData, distance }); // Include doc.id for identifying each emergency
+//     });
+
+//     setEmergencies(emergencies);
+//     setButtonColors(emergencies.reduce((acc, cur) => {
+//       acc[cur.id] = acceptedEmergencies.includes(cur.id) ? 'green' : 'red';
+//       return acc;
+//     }, {}));
+//   };
+
+//   useEffect(() => {
+//     getCurrentLocation();
+//   }, []);
+
+//   useEffect(() => {
+//     if (currentLocation) {
+//       getEmergencies();
+//     }
+//   }, [currentLocation]);
+
+//   const handleAcceptEmergency = async (emergencyId) => {
+//     try {
+//       await firebase.firestore().collection('emergencies').doc(emergencyId).update({
+//         status: 'Accepted'
+//       });
+  
+//       // Update the status in the local state
+//       setEmergencies(prevEmergencies =>
+//         prevEmergencies.map(emergency =>
+//           emergency.id === emergencyId ? { ...emergency, status: 'Accepted' } : emergency
+//         )
+//       );
+  
+//       // Update button color to green
+//       setButtonColors(prevButtonColors => ({
+//         ...prevButtonColors,
+//         [emergencyId]: 'green'
+//       }));
+  
+//       // Start a countdown timer to remove the emergency
+//       const timer = setTimeout(() => {
+//         setEmergencies(prevEmergencies =>
+//           prevEmergencies.filter(emergency => emergency.id !== emergencyId)
+//         );
+//         // Clear the timer
+//         clearTimeout(timers[emergencyId]);
+//       }, 60 * 1000); // 1 minute in milliseconds
+  
+//       // Save the timer to clear it later if needed
+//       setTimers(prevTimers => ({
+//         ...prevTimers,
+//         [emergencyId]: timer
+//       }));
+//     } catch (error) {
+//       console.error('Error accepting emergency:', error);
+//     }
+//   };
+  
+  
+  
+  
+//   // In your useEffect for cleanup, clear the timers
+//   useEffect(() => {
+//     return () => {
+//       Object.values(timers).forEach(timer => clearTimeout(timer));
+//     };
+//   }, []);
+
+//   return (
+//           <View style={styles.container}>
+//             <Text style={styles.heading}>CITIZENS NEED HELP</Text>
+//             <View style={styles.flatListContainer}>
+//             <FlatList
+//         style={styles.flatList}
+//         data={emergencies.filter(emergency => emergency.status !== 'Accepted')}
+//         keyExtractor={(item, index) => index.toString()}
+//         renderItem={({ item }) => (
+//           <View style={styles.itemContainer}>
+//             <Text>Latitude: {item.latitude}, Longitude: {item.longitude}</Text>
+//             <Text>Distance: {item.distance.toFixed(2)} km</Text>
+//             {item.status ? (
+//               <Text style={styles.acceptedText}>Accepted</Text>
+//             ) : (
+//               <Text style={styles.pendingText}>Pending</Text>
+//             )}
+//             {timers[item.id] && (
+//               <Text style={styles.timerText}>
+//                 Timer: {Math.ceil((timers[item.id] - Date.now()) / 1000)} seconds
+//               </Text>
+//             )}
+//             <TouchableOpacity
+//               style={[styles.acceptButton, { backgroundColor: buttonColors[item.id] }]}
+//               onPress={() => handleAcceptEmergency(item.id)}
+//             >
+//               <Text style={styles.buttonText}>Accept</Text>
+//             </TouchableOpacity>
+//             <View style={styles.buttonContainer}>
+//               <Button
+//                 title="View Fastest Route"
+//                 onPress={() =>
+//                   Linking.openURL(
+//                     `https://www.google.com/maps/dir/?api=1&origin=${currentLocation.coords.latitude},${currentLocation.coords.longitude}&destination=${item.latitude},${item.longitude}`
+//                   )
+//                 }
+//               />
+//             </View>
+//           </View>
+//         )}
+//       />
+
+//       </View>
+//       {showIncidents && <Incidents onClose={() => setShowIncidents(false)} />}
+//         <View style={styles.buttonContainer}>
+//           <Button
+//             title="Show Incidents"
+//             onPress={() => setShowIncidents(true)}
+//           />
+//         </View>
+//     </View>
+//   );
+// };
+
+// const styles = StyleSheet.create({
+//   container: {
+//     flex: 1,
+//     backgroundColor: '#fff',
+//     alignItems: 'center',
+//     justifyContent: 'center',
+//   },
+//   heading: {
+//     fontSize: 24,
+//     marginTop: 50,
+//     marginBottom: 20,
+//     fontWeight: 'bold',
+//     color: '#841584',
+//   },
+//   flatListContainer: {
+//     flex: 1, // Allow the FlatList container to expand to fill the available space
+//     width: '100%', // Ensure the container takes up the full width
+//   },
+//   itemContainer: {
+//     borderWidth: 2,
+//     borderColor: '#ccc',
+//     borderRadius: 5,
+//     padding: 10,
+//     marginVertical: 10,
+//     width: '90%',
+//     marginBottom: 10,
+//     alignSelf: 'center', // Center the item horizontally
+//   },
+//   flatList: {
+//     flexGrow: 1, // Allow the FlatList to expand to fill the available space
+//   },
+//   acceptButton: {
+//     padding: 10,
+//     borderRadius: 5,
+//     marginTop: 10,
+//     alignItems: 'center',
+//   },
+//   acceptedText: {
+//     backgroundColor: 'lightgreen',
+//     padding: 10,
+//     borderRadius: 5,
+//     marginTop: 10,
+//   },
+//   pendingText: {
+//     backgroundColor: 'yellow',
+//     padding: 10,
+//     borderRadius: 5,
+//     marginTop: 10,
+//   },
+//   buttonText: {
+//     color: 'white',
+//     fontWeight: 'bold',
+//   },
+//   buttonContainer: {
+//     marginTop: 10,
+//     marginBottom: 10,
+//   },
+// });
+
+// export default App;
+
+
+// ///////////////////ORIGINAL----------------------
+
+
 
 
 import React, { useEffect, useState } from 'react';
@@ -503,12 +1039,35 @@ import firebase from '@react-native-firebase/app';
 import '@react-native-firebase/firestore';
 import Incidents from './Incidents';
 
+
+
+// Custom hook to run a callback function at a specified interval
+const useInterval = (callback, delay) => {
+  const savedCallback = useRef();
+
+  // Remember the latest callback
+  useEffect(() => {   
+    savedCallback.current = callback;
+  }, [callback]);
+
+  // Set up the interval
+  useEffect(() => {
+    const tick = () => {
+      savedCallback.current();  
+    };
+    if (delay !== null) {
+      const id = setInterval(tick, delay);
+      return () => clearInterval(id);
+    }
+  }, [delay]);
+};
+
 const App = () => {
   const [currentLocation, setCurrentLocation] = useState(null);
   const [emergencies, setEmergencies] = useState([]);
   const [acceptedEmergencies, setAcceptedEmergencies] = useState([]);
   const [buttonColors, setButtonColors] = useState({});
-  const [showIncidents, setShowIncidents] = useState(false); // State to toggle the Incidents component
+  const [showIncidents, setShowIncidents] = useState(true); // State to toggle the Incidents component
   const [timers, setTimers] = useState({}); // State to manage countdown timers
 
   useEffect(() => {
@@ -577,34 +1136,72 @@ const App = () => {
     }
   }, [currentLocation]);
 
+  // const handleAcceptEmergency = async (emergencyId) => {
+  //   try {
+  //     await firebase.firestore().collection('emergencies').doc(emergencyId).update({
+  //       status: 'Accepted'
+  //     });
+  
+  //     // Update the status in the local state
+  //     setEmergencies(prevEmergencies =>
+  //       prevEmergencies.map(emergency =>
+  //         emergency.id === emergencyId ? { ...emergency, status: 'Accepted' } : emergency
+  //       )
+  //     );
+  
+  //     // Update button color to green
+  //     setButtonColors(prevButtonColors => ({
+  //       ...prevButtonColors,
+  //       [emergencyId]: 'green'
+  //     }));
+  
+  //     // Start a countdown timer to remove the emergency
+  //     const timer = setTimeout(() => {
+  //       setEmergencies(prevEmergencies =>
+  //         prevEmergencies.filter(emergency => emergency.id !== emergencyId)
+  //       );
+  //       // Clear the timer
+  //       clearTimeout(timers[emergencyId]);
+  //     }, 60 * 1000); // 1 minute in milliseconds
+  
+  //     // Save the timer to clear it later if needed
+  //     setTimers(prevTimers => ({
+  //       ...prevTimers,
+  //       [emergencyId]: timer
+  //     }));
+  //   } catch (error) {
+  //     console.error('Error accepting emergency:', error);
+  //   }
+  // };
+
   const handleAcceptEmergency = async (emergencyId) => {
     try {
       await firebase.firestore().collection('emergencies').doc(emergencyId).update({
         status: 'Accepted'
       });
-  
+    
       // Update the status in the local state
       setEmergencies(prevEmergencies =>
         prevEmergencies.map(emergency =>
           emergency.id === emergencyId ? { ...emergency, status: 'Accepted' } : emergency
         )
       );
-  
+    
       // Update button color to green
       setButtonColors(prevButtonColors => ({
         ...prevButtonColors,
         [emergencyId]: 'green'
       }));
-  
-      // Start a countdown timer to remove the emergency
+    
+      // Start a countdown timer to remove the emergency after 5 minutes
       const timer = setTimeout(() => {
         setEmergencies(prevEmergencies =>
           prevEmergencies.filter(emergency => emergency.id !== emergencyId)
         );
         // Clear the timer
         clearTimeout(timers[emergencyId]);
-      }, 60 * 1000); // 1 minute in milliseconds
-  
+      }, 5 * 60 * 1000); // 5 minutes in milliseconds
+    
       // Save the timer to clear it later if needed
       setTimers(prevTimers => ({
         ...prevTimers,
@@ -614,6 +1211,7 @@ const App = () => {
       console.error('Error accepting emergency:', error);
     }
   };
+  
   
   
   
@@ -647,12 +1245,7 @@ const App = () => {
                 Timer: {Math.ceil((timers[item.id] - Date.now()) / 1000)} seconds
               </Text>
             )}
-            <TouchableOpacity
-              style={[styles.acceptButton, { backgroundColor: buttonColors[item.id] }]}
-              onPress={() => handleAcceptEmergency(item.id)}
-            >
-              <Text style={styles.buttonText}>Accept</Text>
-            </TouchableOpacity>
+          
             <View style={styles.buttonContainer}>
               <Button
                 title="View Fastest Route"
@@ -662,6 +1255,14 @@ const App = () => {
                   )
                 }
               />
+
+<TouchableOpacity
+              style={[styles.acceptButton, { backgroundColor: buttonColors[item.id] }]}
+              onPress={() => handleAcceptEmergency(item.id)}
+            >
+              <Text style={styles.buttonText}>Done Responding</Text>
+            </TouchableOpacity>
+              
             </View>
           </View>
         )}
@@ -739,6 +1340,14 @@ const styles = StyleSheet.create({
 });
 
 export default App;
+
+
+
+
+
+
+
+
 
 
 
